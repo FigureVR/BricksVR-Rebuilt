@@ -96,11 +96,7 @@ public class BrickPickerManager : MonoBehaviour
         fade.BeginShrink();
 
         colorPicker.CurrentColor = _activeColorPickerSaveSpot.color;
-        colorPicker.onValueChanged.AddListener(color =>
-        {
-            SetColor(color);
-            _activeColorPickerSaveSpot.SetColor(color);
-        });
+        colorPicker.onValueChanged.AddListener(SetColor);
     }
 
     private void LateUpdate()
@@ -194,6 +190,8 @@ public class BrickPickerManager : MonoBehaviour
     {
         if (_activeColorPickerSaveSpot) _activeColorPickerSaveSpot.Disable();
         _activeColorPickerSaveSpot = saveSpot;
+
+        colorPicker.CurrentColor = saveSpot.color;
 
         Color c = _activeColorPickerSaveSpot.GetColor();
 
