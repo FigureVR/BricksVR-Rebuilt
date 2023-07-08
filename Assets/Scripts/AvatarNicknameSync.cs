@@ -47,7 +47,7 @@ public class AvatarNicknameSync : AvatarNicknameModel
     {
         // Note, sometimes Camera.current doesn't exist here
         _currentCameraTransform = Camera.current.transform;
-        if (GetComponent<PlayerAvatar>() == null)
+        if (GetComponent<PlayerAvatar>().isLocal)
         {
             UserSettings userSettings = UserSettings.GetInstance();
             SetNickname(userSettings.Nickname);
@@ -111,41 +111,6 @@ public class AvatarNicknameSync : AvatarNicknameModel
         }
     }
 
-    private void AvatarEyesSet()
-    {
-        eyesImage.sprite = AvatarFaceGetter.GetInstance().GetEyes(avatarEyes);
-    }
-
-    private void AvatarMouthSet()
-    {
-        mouthImage.sprite = AvatarFaceGetter.GetInstance().GetMouth(avatarMouth);
-    }
-
-    private void NicknameDidChange(AvatarNicknameModel model, string nickname)
-    {
-        NicknameSet();
-    }
-
-    private void PrimaryAvatarColorDidChange(AvatarNicknameModel model, int color)
-    {
-        PrimaryAvatarColorSet();
-    }
-
-    private void SecondaryAvatarColorDidChange(AvatarNicknameModel model, int color)
-    {
-        SecondaryAvatarColorSet();
-    }
-
-    private void AvatarEyesDidChange(AvatarNicknameModel model, int value)
-    {
-        AvatarEyesSet();
-    }
-
-    private void AvatarMouthDidChange(AvatarNicknameModel model, int value)
-    {
-        AvatarMouthSet();
-    }
-
     private void SetNickname(string _nickname)
     {
         nickname = _nickname;
@@ -159,11 +124,13 @@ public class AvatarNicknameSync : AvatarNicknameModel
     private void SetPrimaryAvatarColor(int color)
     {
         primaryAvatarColor = color;
+        PrimaryAvatarColorSet();
     }
 
     private void SetSecondaryAvatarColor(int color)
     {
         secondaryAvatarColor = color;
+        SecondaryAvatarColorSet();
     }
 
     private void SetAvatarEyes(int value)

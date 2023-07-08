@@ -15,9 +15,9 @@ public class ColorCarousel : MonoBehaviour
 
     private int _currentColorIndex;
 
-    public SerializableIntEvent ColorUpdated;
+    public SerializableIntEvent colorUpdated;
 
-    [System.Serializable]
+    [Serializable]
     public class SerializableIntEvent : UnityEvent<int> { }
 
     private void Awake()
@@ -73,7 +73,7 @@ public class ColorCarousel : MonoBehaviour
 
     private void SendColorUpdatedEvent()
     {
-        ColorUpdated?.Invoke(ColorInt.ColorToInt(colors[_currentColorIndex]));
+        colorUpdated?.Invoke(ColorInt.ColorToInt(colors[_currentColorIndex]));
     }
 
     private void ReRenderColor()
