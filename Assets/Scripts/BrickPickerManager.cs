@@ -6,8 +6,12 @@ using UnityEngine;
 using System.Linq;
 using HSVPicker;
 
-public class BrickPickerManager : MonoBehaviour
-{
+/// <summary>
+/// BrickPickerMenu/
+/// </summary>
+public class BrickPickerManager : MonoBehaviour {
+    public Session session;
+
     public Button bricksTabButton;
     public Button tilesTabButton;
     public Button platesTabButton;
@@ -26,7 +30,7 @@ public class BrickPickerManager : MonoBehaviour
 
     public GameObject tilePrefab;
 
-    public SessionManager SessionManager;// Find info about the in-game menu. We shouldn't open the brick menu if the in-game menu is open.
+    public SessionManager sessionManager;// Find info about the in-game menu. We shouldn't open the brick menu if the in-game menu is open.
 
     public ColorPicker colorPicker;
 
@@ -71,11 +75,9 @@ public class BrickPickerManager : MonoBehaviour
     private List<(BrickPickerBrick brickPickerBrick, float distance)> hoveredBricksThisFrame = new List<(BrickPickerBrick brickPickerBrick, float distance)>();
 
     // Start is called before the first frame update
-    private void Start()
-    {
+    private void Start() {
         fade = menuContentsObject.GetComponent<FadeBrickMenu>();
-        _tabs = new Dictionary<string, MenuTab>()
-        {
+        _tabs = new Dictionary<string, MenuTab>() {
             {"bricks", new MenuTab(bricksTabButton, bricksTabObject)},
             {"tiles", new MenuTab(tilesTabButton, tilesTabObject)},
             {"plates", new MenuTab(platesTabButton, platesTabObject)},
@@ -99,9 +101,8 @@ public class BrickPickerManager : MonoBehaviour
         colorPicker.onValueChanged.AddListener(SetColor);
     }
 
-    private void LateUpdate()
-    {
-        if (!SessionManager.Playing() || SessionManager.InGameMenuUp()) return;
+    private void LateUpdate() {
+        if(session.GetClientState() != Session.ClientState.Playing || sessionManager.InGameMenuUp()) return;
 
         if(_holdingMenu)
             RepositionMenu(_holdingMenuWithLeftHand);
@@ -344,10 +345,8 @@ public class BrickPickerManager : MonoBehaviour
         }
     }
 
-    private struct MenuTab
-    {
-        public MenuTab(Button tabButton, GameObject gameObject)
-        {
+    private struct MenuTab {
+        public MenuTab(Button tabButton, GameObject gameObject) {
             TabButton = tabButton;
             Gameobject = gameObject;
             Initialized = false;

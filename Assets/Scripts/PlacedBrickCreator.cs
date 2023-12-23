@@ -2,31 +2,29 @@
 
 public static class PlacedBrickCreator
 {
-    private static SessionManager _sessionManager;
-
-    public static GameObject CreateFromBrickObject(BrickData.LocalBrickData brick, bool recalculateMesh = true)
-    {
-        return CreateFromAttributes(brick.type, BrickData.CustomVec3.To(brick.pos), BrickData.CustomQuaternion.To(brick.rot), brick.color, recalculateMesh);
+    public static GameObject CreateFromBrickObject(BrickData.LocalBrickData brick, bool recalculateMesh = true, Session session = null) {
+        return CreateFromAttributes(brick.type, BrickData.CustomVec3.To(brick.pos), BrickData.CustomQuaternion.To(brick.rot), brick.color, recalculateMesh, null, session);
     }
 
-    private static GameObject CreateFromAttributes(string type, Vector3 pos, Quaternion rot, int color, bool recalculateMesh = true, int headClientId = -1)
-    {
+    private static GameObject CreateFromAttributes(string type, Vector3 pos, Quaternion rot, int color, bool recalculateMesh = true, string headClientId = null, Session session = null) {
         if(!type.Contains(" - Placed")) type += " - Placed";
+        session = session ?? Session.GetInstance();
         string uuid = BrickId.FetchNewBrickID();
         GameObject brickObject;
-        if (headClientId == -1)
-        {
+
+        headClientId = headClientId ?? session.ClientID;
+
+        if (headClientId == session.ClientID) {
             brickObject = GameObject.Instantiate(BrickPrefabCache.GetInstance().Get(type), pos, rot);
-        }
-        else
-        {
+        } else {
             AvatarManager avatarManager = AvatarManager.GetInstance();
-            Transform headTransform = avatarManager.localAvatar.head.transform;
+            Transform headTransform = avatarManager.LocalAvatar.head.transform;
 
             brickObject = GameObject.Instantiate(BrickPrefabCache.GetInstance().Get(type), headTransform);
             brickObject.transform.localPosition = pos;
             brickObject.transform.localRotation = rot;
         }
+
         BrickAttach newBrickAttach = brickObject.GetComponent<BrickAttach>();
 
         newBrickAttach.Color = ColorInt.IntToColor32(color);
@@ -38,19 +36,12 @@ public static class PlacedBrickCreator
 
         BrickMeshRecalculator.GetInstance().AddAttach(newBrickAttach);
 
-        if (_sessionManager == null)
-            _sessionManager = SessionManager.GetInstance();
-
         BrickSounds sounds = BrickSounds.GetInstance();
 
-        if (!_sessionManager.Loading() && UserSettings.GetInstance().BrickClickSoundsEnabled)
-        {
-            if (newBrickAttach.IsOnCarpet())
-            {
+        if (session.GetClientState() != Session.ClientState.Loading && UserSettings.GetInstance().BrickClickSoundsEnabled) {
+            if (newBrickAttach.IsOnCarpet()) {
                 sounds.PlayBrickCarpetSound(pos);
-            }
-            else
-            {
+            } else {
                 sounds.PlayBrickSnapSound(pos);
             }
         }
@@ -61,13 +52,11 @@ public static class PlacedBrickCreator
         return brickObject;
     }
 
-    public static void DestroyBrickObject(GameObject gameObject) {
-        SessionManager sessionManager = SessionManager.GetInstance();
-        Session session = sessionManager.session;
-
+    public static void DestroyBrickObject(GameObject gameObject, Session session = null) {
         BrickDestroyer destroyer = BrickDestroyer.GetInstance();
+        session = session ?? Session.GetInstance();
 
-        if (session.isSinglePlayer)
+        if (session.GetSessionType() == Session.SessionType.SinglePlayer)
             destroyer.DelayedDestroy(gameObject);
     }
 }

@@ -1,21 +1,18 @@
 ﻿using UnityEngine;
 
-public class ControllerButtonInput : MonoBehaviour
-{
-    public GameObject realtimeObject;
+public class ControllerButtonInput : MonoBehaviour {
     public GameObject leftMenuHand;
     public GameObject rightMenuHand;
 
+    public Session session;
+
     private OVRInput.Controller _activeController;
 
-    private Session _session;
     private bool _reset;
     private bool inMenu = true;
 
     // Start is called before the first frame update
-    public void Start()
-    {
-        _session = realtimeObject.GetComponent<Session>();
+    public void Start() {
         _reset = false;
 
         leftMenuHand.SetActive(true);
@@ -24,31 +21,24 @@ public class ControllerButtonInput : MonoBehaviour
     }
 
     // Update is called once per frame
-    private void Update()
-    {
-        if ((!_session.isPlaying && !_session.isLoading) || inMenu)
-        {
+    private void Update() {
+        if ((session.GetClientState() != Session.ClientState.Playing && session.GetClientState() != Session.ClientState.Loading) || inMenu) {
             MenuLogic();
-        }
-        else if (!_reset)
-        {
+        } else if (!_reset) {
             ResetMenuState();
         }
     }
 
-    public void EnableMenuControls()
-    {
+    public void EnableMenuControls() {
         _reset = false;
         inMenu = true;
     }
 
-    public void DisableMenuControls()
-    {
+    public void DisableMenuControls() {
         inMenu = false;
     }
 
-    private void MenuLogic()
-    {
+    private void MenuLogic() {
     //     if (_activeController == OVRInput.Controller.None)
     //     {
     //         OVRInput.Controller controller = OVRInput.GetActiveController();

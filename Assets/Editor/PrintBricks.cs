@@ -5,14 +5,11 @@ using System.IO;
 using System;
 
 
-public static class PrintBricks
-{
+public static class PrintBricks {
     [MenuItem("Debug/Print all brick data as JSON")]
-    public static void PrintBrickData()
-    {
+    public static void PrintBrickData() {
         BrickAttach[] brickAttaches = GameObject.FindObjectsOfType<BrickAttach>();
-        Brick[] bricks = brickAttaches.Select(a => new Brick()
-        {
+        Brick[] bricks = brickAttaches.Select(a => new Brick() {
             uuid = a.GetUuid(),
             matId = BrickColorMap.IDFromColor(a.Color),
             type = a.normalPrefabName,
@@ -21,9 +18,9 @@ public static class PrintBricks
         }).ToArray();
 
         BrickCollectionJson jsonObject = new BrickCollectionJson()
-            {bricks = bricks, room = SessionManager.GetInstance().session.worldName};
+            {bricks = bricks, room = Session.GetInstance().Info.worldName};
 
-        string path = $"Assets/Resources/{SessionManager.GetInstance().session.worldName}";
+        string path = $"Assets/Resources/{Session.GetInstance().Info.worldName}";
         StreamWriter writer = new StreamWriter(path, false);
         writer.WriteLine(JsonUtility.ToJson(jsonObject));
         writer.Close();
@@ -31,15 +28,13 @@ public static class PrintBricks
         Debug.Log($"Saved data to {path}");
     }
 
-    public class BrickCollectionJson
-    {
+    public class BrickCollectionJson {
         public Brick[] bricks;
         public string room;
     }
 
     [Serializable]
-    public class Brick
-    {
+    public class Brick {
         public string uuid;
         public int matId;
         public string type;

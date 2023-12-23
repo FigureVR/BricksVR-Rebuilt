@@ -1,10 +1,12 @@
-﻿using System.Collections;
+﻿using static Session.SessionType;
+using System.Collections;
 using UnityEngine;
 using TMPro;
 
-public class LocalAutoSave : MonoBehaviour
-{
-    
+/// <summary>
+/// MetaObjects/LocalAutoSave
+/// </summary>
+public class LocalAutoSave : MonoBehaviour {
     private UserSettings settings;
     private SessionManager manager;
     private Coroutine routine;
@@ -14,15 +16,15 @@ public class LocalAutoSave : MonoBehaviour
     
     private void Start()
     {
+        manager = SessionManager.GetInstance();
         settings = UserSettings.GetInstance();
 
-        manager = SessionManager.GetInstance();
-        manager.session.didSessionStart += SessionDidStart;
-        manager.session.didSessionEnd += SessionDidStart;
+        Session.SessionStart += SessionDidStart;
+        Session.SessionEnd += SessionDidStart;
     }
 
     private void SessionDidStart(Session session) {
-        if (session.isTutorial) return;
+        if (session.GetSessionType() == Tutorial) return;
 
         routine = StartCoroutine(AutoSave());
         settings.AutosaveUpdated.AddListener((int number) => {

@@ -5,9 +5,11 @@ using UnityEngine;
 using System;
 using TMPro;
 
-public class DownloadBricksOnLoad : MonoBehaviour
-{
-    private Session _session;
+/// <summary>
+/// MetaObjects/Session
+/// </summary>
+public class DownloadBricksOnLoad : MonoBehaviour {
+    public Session session;
     private string _roomDataJson;
     private TextMeshProUGUI _joiningStatusText;
 
@@ -24,33 +26,28 @@ public class DownloadBricksOnLoad : MonoBehaviour
 
     public List<NormcoreRPC.Brick> bricksParentedToHeads = new List<NormcoreRPC.Brick>();
 
-    void Start()
-    {
-        _session = SessionManager.GetInstance().session;
+    void Start() {
+        session = Session.GetInstance();
         // if (Application.platform != RuntimePlatform.Android)
         //     _downloadSpeedMultiplier = 3;
 
-        if (Application.isEditor)
-        {
+        if (Application.isEditor) {
             _downloadSpeedMultiplier = 50;
         }
     }
 
-    public void Reset()
-    {
+    public void Reset() {
         isDoneDownloading = false;
         upstreamError = false;
         connectivityError = false;
     }
 
-    public void StartLoading(string roomName, TextMeshProUGUI joiningStatusText)
-    {
+    public void StartLoading(string roomName, TextMeshProUGUI joiningStatusText) {
         _joiningStatusText = joiningStatusText;
         StartCoroutine(LoadBrickDataAsync(roomName));
     }
 
-    private IEnumerator LoadBrickDataAsync(string roomName)
-    {
+    private IEnumerator LoadBrickDataAsync(string roomName) {
         _joiningStatusText.text = $"Status: Fetching bricks from database...";
         yield return DownloadBrickData(roomName);
 
@@ -69,7 +66,7 @@ public class DownloadBricksOnLoad : MonoBehaviour
         {
             try
             {
-                if (parsedResponse.bricks[i].usingHeadStuff && (parsedResponse.bricks[i].headClientId != -1))
+                if (parsedResponse.bricks[i].usingHeadStuff && (parsedResponse.bricks[i].headClientId != session.ClientID))
                 {
                     bricksParentedToHeads.Add(parsedResponse.bricks[i]);
                 }
@@ -114,33 +111,26 @@ public class DownloadBricksOnLoad : MonoBehaviour
         isDoneDownloading = true;
     }
 
-    public void LoadBricksParentedToHeads()
-    {
-        if (bricksParentedToHeads.Count > 1000)
-        {
+    public void LoadBricksParentedToHeads() {
+        if (bricksParentedToHeads.Count > 1000) {
             Debug.LogError("Found an absurd number of bricks to parent, something is wrong");
             return;
         }
 
-        int clientId = _session.clientID;
+        string clientId = session.ClientID;
 
         BrickAttach[] createdBricks = new BrickAttach[bricksParentedToHeads.Count];
         AvatarManager avatarManager = AvatarManager.GetInstance();
-        for(int i = 0; i < bricksParentedToHeads.Count; i++)
-        {
-            if ((bricksParentedToHeads[i].headClientId == clientId) || !avatarManager.avatars.ContainsKey(bricksParentedToHeads[i].headClientId))
-            {
+        for(int i = 0; i < bricksParentedToHeads.Count; i++) {
+            if ((bricksParentedToHeads[i].headClientId == clientId) || !avatarManager.GetAvatar(bricksParentedToHeads[i].headClientId)) {
                 // Users should never have bricks on their head on load
-            }
-            else
-            {
+            } else {
                 //createdBricks[i] = PlacedBrickCreator.CreateFromBrickObject(bricksParentedToHeads[i], false)
                 // .GetComponent<BrickAttach>();
             }
         }
 
-        for (int i = 0; i < createdBricks.Length; i++)
-        {
+        for (int i = 0; i < createdBricks.Length; i++) {
             if (createdBricks[i] == null)
                 continue;
 

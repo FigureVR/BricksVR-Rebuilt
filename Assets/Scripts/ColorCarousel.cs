@@ -6,10 +6,11 @@ using System;
 
 public class ColorCarousel : MonoBehaviour
 {
+    private bool colorIntsInitialized;
+    private int[] colorInts;
+
     public Image colorImage;
     public Color[] colors;
-    private int[] colorInts;
-    private bool colorIntsInitialized;
 
     [FormerlySerializedAs("initialColorIndex")] public int editorColorIndex;
 

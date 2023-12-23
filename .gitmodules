@@ -1,0 +1,3 @@
+[submodule "Assets/SharpRakNet"]
+	path = Assets/SharpRakNet
+	url = https://github.com/BricksVR-Modding/SharpRakNet.git

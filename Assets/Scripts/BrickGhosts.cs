@@ -1,16 +1,14 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Security;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public static class BrickGhosts
 {
-    private static GameObject _ghostPrefab;
     private static readonly Dictionary<string, Mesh> MeshCache = new Dictionary<string, Mesh>();
+    private static GameObject _ghostPrefab;
 
     public static GameObject GhostForBrick(string prefabName)
     {
-        GameObject newGhost = GameObject.Instantiate(GetGhostPrefab());
+        GameObject newGhost = Object.Instantiate(GetGhostPrefab());
         newGhost.GetComponentInChildren<MeshFilter>().mesh = GetBrickMesh(prefabName);
 
         return newGhost;

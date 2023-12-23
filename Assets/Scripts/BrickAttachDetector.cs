@@ -96,27 +96,25 @@ public class BrickAttachDetector : MonoBehaviour
         isBeingHeld = false;
 
         (bool canConnect, Vector3 newPos, Quaternion newRot, Vector3 connectionDirection) = CheckIfCanConnect();
-        if (canConnect)
-        {
-            try
-            {
-                if (GetComponent<BrickAttach>().ConnectBricks(newPos, newRot, connectionDirection))
-                {
+        if (canConnect) {
+            try {
+                if (GetComponent<BrickAttach>().ConnectBricks(newPos, newRot, connectionDirection)) {
                     bool leftHand = interactor.transform.parent.gameObject.name == "LeftHand";
                     _hapticsManager.PlayHaptics(0.5f, 0.5f, 0.1f, !leftHand, leftHand);
                 }
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 Debug.Log("SOMETHING EXPLODED!");
                 Debug.Log(e.Message);
                 Debug.Log(e.StackTrace);
 
+
+                Session session = SessionManager.GetInstance().session;
+                Debug.Log(session.CanPlace);
+                Debug.Log(session.GetSessionType());
+
                 EnableGravityIfUnowned();
             }
-        }
-        else
-        {
+        } else {
             // GetComponent<BuildingBrickSync>().AddBrickBelow("ground");
             EnableGravityIfUnowned();
         }
@@ -125,8 +123,7 @@ public class BrickAttachDetector : MonoBehaviour
 
         GetComponent<XRGrabInteractable>().interactionManager.ForceHoverExit(interactor, ourInteractable);
 
-        foreach (Collider c in colliders)
-        {
+        foreach (Collider c in colliders) {
             c.enabled = true;
             c.isTrigger = false;
         }
@@ -151,7 +148,7 @@ public class BrickAttachDetector : MonoBehaviour
     // This is kind of gross
     public (bool canConnect, Vector3 pos, Quaternion rot, Vector3 connectionDirection) CheckIfCanConnect()
     {
-        if (!SessionManager.GetInstance().session.canPlace)
+        if (!SessionManager.GetInstance().session.CanPlace)
             return _nullResponse;
 
         GameObject[] femaleConnectorsWithConnections = GetFemaleConnectorsWithConnections();

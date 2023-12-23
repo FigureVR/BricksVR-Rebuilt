@@ -20,16 +20,16 @@ public class PlayerMenuManager : MonoBehaviour
 
     private void OnEnable()
     {
-        avatarManager.avatarCreated += UserJoined;
-        avatarManager.avatarDestroyed += UserQuit;
+        avatarManager.AvatarCreated += UserJoined;
+        avatarManager.AvatarDestroyed += UserQuit;
 
         RefreshPlayerList();
     }
 
     private void OnDisable()
     {
-        avatarManager.avatarCreated -= UserJoined;
-        avatarManager.avatarDestroyed -= UserQuit;
+        avatarManager.AvatarCreated -= UserJoined;
+        avatarManager.AvatarDestroyed -= UserQuit;
     }
 
     private void RefreshPlayerList()
@@ -40,7 +40,7 @@ public class PlayerMenuManager : MonoBehaviour
 
     private void RepopulateUserList()
     {
-        users = avatarManager.avatars.Values.OrderBy(avatar => !avatar.isLocal).ToList();
+        users = avatarManager.GetAvatars().OrderBy(avatar => !avatar.isLocal).ToList();
     }
 
     private void RebuildUI()
@@ -48,8 +48,7 @@ public class PlayerMenuManager : MonoBehaviour
         foreach (Transform t in _listParentTransform)
             Destroy(t.gameObject);
 
-        foreach (PlayerAvatar avatar in users)
-        {
+        foreach (PlayerAvatar avatar in users) {
             GameObject newPlayerEntry = Instantiate(playerEntryPrefab, _listParentTransform);
             PlayerListItem playerListItem = newPlayerEntry.GetComponent<PlayerListItem>();
             playerListItem.Initialize(avatar);

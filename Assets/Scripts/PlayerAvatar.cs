@@ -8,7 +8,7 @@ public class PlayerAvatar : MonoBehaviour
     public bool isLocal {
         get {
             if(_local == null)
-                _local = this == AvatarManager.GetInstance().localAvatar;
+                _local = this == AvatarManager.GetInstance().LocalAvatar;
 
             return _local.Value;
         }

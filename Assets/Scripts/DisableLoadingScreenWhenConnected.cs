@@ -5,7 +5,7 @@ public class DisableLoadingScreenWhenConnected : MonoBehaviour
     public GameObject canvas;
 
     private void Start() {
-        AvatarManager.GetInstance().avatarCreated += HideLoadingScreen;
+        AvatarManager.GetInstance().AvatarCreated += HideLoadingScreen;
 
         canvas.SetActive(true);
     }

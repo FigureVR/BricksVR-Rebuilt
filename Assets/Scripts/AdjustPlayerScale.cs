@@ -1,10 +1,12 @@
 ﻿using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 
-public class AdjustPlayerScale : MonoBehaviour
-{
-    public Session _session;
+/// <summary>
+/// @ Player Controllers/VR Rig/Camera Offset
+/// </summary>
+public class AdjustPlayerScale : MonoBehaviour {
     public AvatarManager avatarManager;
+    public Session session;
 
     public JoystickLocomotion joystickLocomotion;
     public Camera headCamera;
@@ -45,7 +47,7 @@ public class AdjustPlayerScale : MonoBehaviour
 
     public void Start()
     {
-        _session.didSessionStart += DidConnectToRoom;
+        Session.SessionStart += DidConnectToRoom;
     }
 
     public float GetScale()
@@ -58,15 +60,13 @@ public class AdjustPlayerScale : MonoBehaviour
         return SliderValueToScalePercentages[sliderValue - 1];
     }
 
-    public void SetScale(int sliderValue)
-    {
+    public void SetScale(int sliderValue) {
         _scale = GetScaleFromSliderValue(sliderValue);
         // We don't call ChangePlayerScale right away because it makes using the slider really hard. We modify the user scale when the world is loaded, and when the misc menu is closed.
     }
 
-    public void ChangePlayerScale()
-    {
-        if (_session.isPlaying == false)
+    public void ChangePlayerScale() {
+        if (session.GetClientState() == Session.ClientState.Playing == false)
             return;
 
         Vector3 scaleVector = new Vector3(_scale, _scale, _scale);

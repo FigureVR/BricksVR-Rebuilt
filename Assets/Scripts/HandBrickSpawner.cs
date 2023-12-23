@@ -4,8 +4,11 @@ using System.Linq;
 using UnityEngine;
 using System;
 
-public class HandBrickSpawner : MonoBehaviour
-{
+/// <summary>
+/// Player Controllers/VR Rig/Camera Offset/RightHand/Controller
+/// Player Controllers/VR Rig/Camera Offset/LeftHand/Controller
+/// </summary>
+public class HandBrickSpawner : MonoBehaviour {
     public bool leftHand;
     public GameObject spawnLocation;
     public AudioClip sound;
@@ -21,19 +24,15 @@ public class HandBrickSpawner : MonoBehaviour
 
     private HapticsManager _hapticsManager;
 
-    public Session _session;
+    public Session session;
 
     public int spawnerSetIndex;
 
     // Start is called before the first frame update
-    private void Start()
-    {
-        if (leftHand)
-        {
+    private void Start() {
+        if (leftHand) {
             _buttons = new OVRInput.Button[2] {OVRInput.Button.Three, OVRInput.Button.Four};
-        }
-        else
-        {
+        } else {
             _buttons = new OVRInput.Button[2] {OVRInput.Button.One, OVRInput.Button.Two};
         }
 
@@ -53,7 +52,7 @@ public class HandBrickSpawner : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
-        if (!_session.isPlaying) return;
+        if (session.GetClientState() != Session.ClientState.Playing) return;
 
         foreach (OVRInput.Button button in _buttons)
         {

@@ -8,7 +8,6 @@ using System.Collections;
 using UnityEngine.UI;
 using System.Linq;
 using UnityEngine;
-using System;
 using TMPro;
 
 public class SessionManager : MonoBehaviour
@@ -144,8 +143,8 @@ public class SessionManager : MonoBehaviour
         _loadingObjectMat = loadingObjectRenderer.material;
         _roomName = "";
 
-        session.didSessionStart += DidSessionStart;
-        session.didSessionEnd += DidSessionEnd;
+        Session.SessionStart += DidSessionStart;
+        Session.SessionEnd += DidSessionEnd;
 
         tutorialEnvironment.SetActive(false);
 
@@ -195,10 +194,8 @@ public class SessionManager : MonoBehaviour
 
     private void Update()
     {
-        if (session.isPlaying && (OVRInput.GetUp(OVRInput.Button.Start, OVRInput.Controller.Touch) || Input.GetKeyUp(KeyCode.M)))
-        {
-            if (!_inGameMenuUp)
-            {
+        if (session.GetClientState() == Session.ClientState.Playing && (OVRInput.GetUp(OVRInput.Button.Start, OVRInput.Controller.Touch) || Input.GetKeyUp(KeyCode.M))) {
+            if (!_inGameMenuUp) {
                 _inGameMenuUp = true;
 
                 DisableAllMenus();
@@ -215,11 +212,9 @@ public class SessionManager : MonoBehaviour
                 teleporterLeftHand.SetActive(false);
                 teleporterRightHand.SetActive(false);
 
-                _avatarManager.localAvatar.leftHand.gameObject.SetActive(false);
-                _avatarManager.localAvatar.rightHand.gameObject.SetActive(false);
-            }
-            else
-            {
+                _avatarManager.LocalAvatar.leftHand.gameObject.SetActive(false);
+                _avatarManager.LocalAvatar.rightHand.gameObject.SetActive(false);
+            } else {
                 _inGameMenuUp = false;
                 adjustPlayerScale.ChangePlayerScale();
 
@@ -233,8 +228,8 @@ public class SessionManager : MonoBehaviour
                 // teleporterLeftHand.SetActive(userSettings.TeleportTriggersEnabled);
                 // teleporterRightHand.SetActive(userSettings.TeleportTriggersEnabled);
 
-                _avatarManager.localAvatar.leftHand.gameObject.SetActive(true);
-                _avatarManager.localAvatar.rightHand.gameObject.SetActive(true);
+                _avatarManager.LocalAvatar.leftHand.gameObject.SetActive(true);
+                _avatarManager.LocalAvatar.rightHand.gameObject.SetActive(true);
             }
         }
     }
@@ -247,16 +242,6 @@ public class SessionManager : MonoBehaviour
     public string NormcoreRoomForCode(string roomCode)
     {
         return _roomPrefix + roomCode;
-    }
-
-    public bool Playing()
-    {
-        return session.isPlaying;
-    }
-
-    public bool Loading()
-    {
-        return session.isLoading;
     }
 
     public bool InGameMenuUp()
@@ -360,7 +345,7 @@ public class SessionManager : MonoBehaviour
 
         musicPlayer.Pause();
         Permission.RequestUserPermission(Permission.Microphone);
-        session.Connect(_roomPrefix + _roomName);
+        session.Connect(_roomPrefix + _roomName, 0);
 
         float time = Time.time;
         while (Time.time - time < 15f)
@@ -430,7 +415,7 @@ public class SessionManager : MonoBehaviour
     {
         LoadingError.IntentionalDisconnect = true;
         UserSettings.GetInstance().TutorialPlayed = true;
-        if(session.isSinglePlayer) LocalSessionLoader.SaveRoom(session.saveDirectory);
+        if(session.GetSessionType() == Session.SessionType.SinglePlayer) LocalSessionLoader.SaveRoom(session.saveDirectory);
         session.EndSession();
 
         StartCoroutine(BackToMenu());
@@ -595,18 +580,16 @@ public class SessionManager : MonoBehaviour
         });
     }
 
-    private void WarmSpawnerCaches()
-    {
+    private void WarmSpawnerCaches() {
         // TODO: Reimplement this
         // GameObject brick = brickSpawner.CreateBrick();
         // _brickStore.Delete(brick.GetComponent<BrickAttach>().GetUuid());
         // StartCoroutine(DelayedDestroyer.DestroyRealtime(brick));
     }
 
-    private void DidSessionStart(Session session)
-    {
+    private void DidSessionStart(Session session) {
         _didSessionStart = true;
-        GameObject localHead = AvatarManager.GetInstance().localAvatar.head.gameObject;
+        GameObject localHead = AvatarManager.GetInstance().LocalAvatar.head.gameObject;
         Renderer[] localHeadRenderers = localHead.GetComponentsInChildren<Renderer>();
 
         foreach (Renderer r in localHeadRenderers)
@@ -615,45 +598,40 @@ public class SessionManager : MonoBehaviour
         }
     }
 
-    private void DidSessionEnd(Session session)
-    {
+    private void DidSessionEnd(Session session) {
         _didSessionEnd = true;
         LoadingError.SetError("Disconnected from room");
         StartCoroutine(BackToMenu());
     }
 
-    private string RandomRoomName()
-    {
+    private string RandomRoomName() {
         return (Random.Range(100000, 999999)).ToString();
     }
 
-    private void MoveMenuToFrontOfUser()
-    {
-        float verticalOffset = session.isPlaying ? 0.2f : 1.4f;
+    private void MoveMenuToFrontOfUser() {
+        float verticalOffset = session.GetClientState() == Session.ClientState.Playing ? 0.2f : 1.4f;
         Vector3 gazeDirection = head.transform.forward;
         gazeDirection.y = 0f;
         Vector3 headPosition = head.transform.position;
-        menuBoard.transform.position = headPosition + (gazeDirection.normalized * (session.isPlaying ? 2.8f : 10f));
+
+        menuBoard.transform.position = headPosition + (gazeDirection.normalized * (session.GetClientState() == Session.ClientState.Playing ? 2.8f : 10f));
         menuBoard.transform.rotation = Quaternion.LookRotation(menuBoard.transform.position - headPosition);
         menuBoard.transform.position += new Vector3(0, verticalOffset, 0);
     }
 
     private Coroutine _tutorialCoroutine;
-    public void PlayTutorial()
-    {
+    public void PlayTutorial() {
         if (_tutorialCoroutine == null)
             _tutorialCoroutine = StartCoroutine(PlayTutorialIEnum());
     }
 
-    private IEnumerator PlayTutorialIEnum()
-    {
+    private IEnumerator PlayTutorialIEnum() {
         userSettings.TutorialPlayed = false;
         yield return StartCoroutine(ScreenFadeProvider.Fade(ambientMusic));
         SceneManager.LoadSceneAsync(SceneManager.GetActiveScene().name);
     }
 
-    private void DisableAllMenus()
-    {
+    private void DisableAllMenus() {
         mainPage.SetActive(false);
         joinByCodePage.SetActive(false);
         settingsPage.SetActive(false);
@@ -673,13 +651,11 @@ public class SessionManager : MonoBehaviour
         exportRoomMenu.SetActive(false);
     }
 
-    private string PadRoomNameWithUnderscores(string roomName)
-    {
-        return $"{roomName}{String.Concat(Enumerable.Repeat("_", 8 - roomName.Length))}";
+    private string PadRoomNameWithUnderscores(string roomName) {
+        return $"{roomName}{string.Concat(Enumerable.Repeat("_", 8 - roomName.Length))}";
     }
 
-    private string FormatRoomName(string roomName)
-    {
+    private string FormatRoomName(string roomName) {
         // if (roomName.Length <= 2)
         //     return roomName;
         //
@@ -693,8 +669,7 @@ public class SessionManager : MonoBehaviour
         return $"<mspace=0.6em>{paddedName.Substring(0, 2)} {paddedName.Substring(2, 2)} {paddedName.Substring(4, 2)} {paddedName.Substring(6, 2)}</mspace>";
     }
 
-    private string FormatRoomNameAnyLenNoMono(string roomName)
-    {
+    private string FormatRoomNameAnyLenNoMono(string roomName) {
         if (roomName.Length <= 2)
             return roomName;
 

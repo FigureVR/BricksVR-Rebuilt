@@ -38,12 +38,13 @@ public static class BrickSwapper
         return newBrick;
     }
 
-    public static GameObject SwapToFakeBrick(GameObject brick, int headClientId = -1, AvatarManager avatarManager = null)
-    {
+    public static GameObject SwapToFakeBrick(GameObject brick, string headClientId = null, AvatarManager avatarManager = null, Session session = null) {
         BrickAttach brickAttach = brick.GetComponent<BrickAttach>();
+        session = session ?? Session.GetInstance();
 
-        BrickData.LocalBrickData serializedBrickObject = new BrickData.LocalBrickData()
-        {
+        headClientId = headClientId ?? session.ClientID;
+
+        BrickData.LocalBrickData serializedBrickObject = new BrickData.LocalBrickData() {
             color = ColorInt.ColorToInt(brickAttach.Color),
             type = brickAttach.normalPrefabName,
             //uuid = brickAttach.GetUuid(),
@@ -55,15 +56,13 @@ public static class BrickSwapper
         };
 
         // If this brick is on a head, send the relative position/rotation instead of the world position/rotation
-        if (headClientId != -1)
-        {
-            brick.transform.parent = avatarManager.avatars[headClientId].head;
+        if (headClientId != session.ClientID){
+            brick.transform.parent = avatarManager.GetAvatar(headClientId).head;
             serializedBrickObject.pos = BrickData.CustomVec3.From(brick.transform.localPosition);
             serializedBrickObject.rot = BrickData.CustomQuaternion.From(brick.transform.localRotation);
         }
 
-        if (!TutorialManager.GetInstance().IsTutorialRunning())
-        {
+        if (!TutorialManager.GetInstance().IsTutorialRunning()) {
             //BrickServerInterface.GetInstance().SendBrick(serializedBrickObject);
         }
 

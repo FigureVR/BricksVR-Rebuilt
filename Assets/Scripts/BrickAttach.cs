@@ -10,19 +10,15 @@ using System;
 // TODO: Communicate when the thing is being held, set rigidbody kinematic=true THEN. The
 
 [SuppressMessage("ReSharper", "ReturnTypeCanBeEnumerable.Local")]
-public class BrickAttach : MonoBehaviour
-{
+public class BrickAttach : MonoBehaviour {
     private Color32 _color;
-    public Color32 Color
-    {
+    public Color32 Color {
         get => _color;
         set => SetColor(value);
     }
 
-    public Color32 HoverColor
-    {
-        get
-        {
+    public Color32 HoverColor {
+        get {
             int difference = (Convert.ToInt32(_color.r) + Convert.ToInt32(_color.g) + Convert.ToInt32(_color.b)) > 300
                 ? -20
                 : 20;
@@ -35,6 +31,7 @@ public class BrickAttach : MonoBehaviour
         }
     }
 
+    private Session session;
     private bool _hoveredLeft;
     private bool _hoveredRight;
     public bool Held { get; private set; }
@@ -85,15 +82,14 @@ public class BrickAttach : MonoBehaviour
 
     public bool renderHollowMesh;
 
+    public string headClientId;
     public bool isPlayerHead;
-    public int headClientId = -1;
 
     private AvatarManager _avatarManager;
 
     public float texOffset;
 
-    private void Awake()
-    {
+    private void Awake() {
         texOffset = Random.Range(0f, 1f);
         _props = new MaterialPropertyBlock();
         _brickUuid = GetComponent<BrickUuid>();
@@ -102,8 +98,7 @@ public class BrickAttach : MonoBehaviour
         meshFilter = model.GetComponent<MeshFilter>();
         meshRenderer = model.GetComponent<MeshRenderer>();
 
-        foreach (Transform child in maleConnectorParent.transform)
-        {
+        foreach (Transform child in maleConnectorParent.transform) {
             maleConnectorScriptsByName.Add(child.gameObject.name, child.gameObject.GetComponent<LegoConnectorScript>());
         }
 
@@ -113,8 +108,7 @@ public class BrickAttach : MonoBehaviour
         hollowMesh = modularBrickObject.GetHollowMesh(normalPrefabName);
         studMesh = modularBrickObject.GetStudMesh(normalPrefabName);
 
-        if (Application.isEditor)
-        {
+        if (Application.isEditor) {
             originalMaterial = model.GetComponent<MeshRenderer>().sharedMaterial;
             originalMesh = _userSettings.SuperUltraPerformanceMode ? _modularModel.transform.Find("FlatBody").GetComponentInChildren<MeshFilter>().sharedMesh : model.GetComponent<MeshFilter>().sharedMesh;
         }
@@ -122,12 +116,13 @@ public class BrickAttach : MonoBehaviour
         SetSortedMaterial();
     }
 
-    private void Start()
-    {
-        _avatarManager = AvatarManager.GetInstance();
+    private void Start() {
         OwnedPhysicsBricksStore.GetInstance().AddBrick(gameObject);
+        _avatarManager = AvatarManager.GetInstance();
+        session = Session.GetInstance();
+        headClientId = session.ClientID;
 
-        if (!isPlayerHead && headClientId == -1) // only for placed bricks
+        if (!isPlayerHead && headClientId == session.ClientID) // only for placed bricks
             ChunkedRenderer.GetInstance().AddBrickToRenderer(gameObject);
     }
 
@@ -183,8 +178,7 @@ public class BrickAttach : MonoBehaviour
         UpdateBrickColor();
     }
 
-    private void UpdateBrickColor()
-    {
+    private void UpdateBrickColor() {
         if (_props == null) return;
 
         _props.SetColor(ShaderColorProperty, (_hoveredLeft || _hoveredRight || Held) ? HoverColor : _color);
@@ -194,8 +188,8 @@ public class BrickAttach : MonoBehaviour
         renderer.SetPropertyBlock(_props);
     }
 
-    public bool ConnectBricks(Vector3 newPos, Quaternion newRot, Vector3 connectionDirection)
-    {
+    public bool ConnectBricks(Vector3 newPos, Quaternion newRot, Vector3 connectionDirection, Session session = null) {
+        session = session ?? Session.GetInstance();
         transform.position = newPos;
         transform.rotation = newRot;
 
@@ -205,22 +199,20 @@ public class BrickAttach : MonoBehaviour
         List<GameObject> bricksAbove = OverlappingBricksFromConnectors(maleConnectors);
         List<BrickAttach> bricksAboveAttaches = bricksAbove.Select(b => b.GetComponent<BrickAttach>()).ToList();
 
-        int attachedToHeadClientId = -1;
+        string attachedToHeadClientId = session.ClientID;
         foreach(BrickAttach attach in bricksBelowAttaches)
-            if (attach.headClientId != -1)
+            if (attach.headClientId != session.ClientID)
                 attachedToHeadClientId = attach.headClientId;
 
         foreach(BrickAttach attach in bricksAboveAttaches)
-            if (attach.headClientId != -1)
+            if (attach.headClientId != session.ClientID)
                 attachedToHeadClientId = attach.headClientId;
 
-        for (int i = 0; i < bricksBelowAttaches.Count; i++)
-        {
+        for (int i = 0; i < bricksBelowAttaches.Count; i++) {
             ConfigureNeighboringBrick(bricksBelowAttaches[i], bricksBelow[i], true);
         }
 
-        for (int i = 0; i < bricksAboveAttaches.Count(); i++)
-        {
+        for (int i = 0; i < bricksAboveAttaches.Count(); i++) {
             ConfigureNeighboringBrick(bricksAboveAttaches[i], bricksAbove[i], false);
         }
 
@@ -229,41 +221,34 @@ public class BrickAttach : MonoBehaviour
         return true;
     }
 
-    private void ConfigureNeighboringBrick(BrickAttach attach, GameObject brick, bool below)
-    {
+    private void ConfigureNeighboringBrick(BrickAttach attach, GameObject brick, bool below) {
         if (attach == null) return;
         if (attach.GetUuid() == GetUuid()) return;
 
         BrickSwapper.SwapToFakeBrick(brick);
     }
 
-    private List<GameObject> OverlappingBricksFromConnectors(List<GameObject> connectors)
-    {
+    private List<GameObject> OverlappingBricksFromConnectors(List<GameObject> connectors) {
         return connectors.Select(OverlappingBrickFromConnector).Where(x => x != null).Distinct().ToList();
     }
 
     // If this connector is overlapping another brick, return that brick
     // Otherwise, return null
-    private GameObject OverlappingBrickFromConnector(GameObject connector)
-    {
+    private GameObject OverlappingBrickFromConnector(GameObject connector) {
         return connector.GetComponent<LegoConnectorScript>().BrickCollidingWith(null);
     }
 
-    public void RecalculateEnabledConnectors()
-    {
-        foreach (LegoConnectorScript script in maleConnectorScripts)
-        {
+    public void RecalculateEnabledConnectors() {
+        foreach (LegoConnectorScript script in maleConnectorScripts) {
             script.RecalculateEnabled();
         }
 
-        foreach (LegoConnectorScript script in femaleConnectorScripts)
-        {
+        foreach (LegoConnectorScript script in femaleConnectorScripts) {
             script.RecalculateEnabled();
         }
     }
 
-    public void RecalculateRenderedGeometry()
-    {
+    public void RecalculateRenderedGeometry() {
         // Figure out which pegs need to be enabled
         // Turn this into a stable lookup key
         // Check the BrickMeshCache to see if a mesh has already been computed

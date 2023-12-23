@@ -2,40 +2,50 @@
 using UnityEngine;
 using System;
 
-public class AvatarManager : MonoBehaviour
-{
-    public GameObject prefab;
+/// <summary>
+/// MetaObjects/Session
+/// </summary>
+public class AvatarManager : MonoBehaviour {
     private static AvatarManager _instance;
+
+    public GameObject prefab;
+    public Session session;
+
     public static AvatarManager GetInstance() {
-        if(_instance == null) return _instance = FindObjectOfType<AvatarManager>();
-        return _instance;
+        return _instance = _instance != null ? _instance : FindObjectOfType<AvatarManager>();
     }
 
-    public PlayerAvatar localAvatar {
+    public PlayerAvatar LocalAvatar {
         get {
-            return avatars[-1];
+            return Avatars[session.ClientID];
         }
     }
 
-    private Dictionary<int, PlayerAvatar> _avatars;
-    public Dictionary<int, PlayerAvatar> avatars {
-        get {
-            return _avatars;
-        }
+    private readonly Dictionary<string, PlayerAvatar> Avatars = new Dictionary<string, PlayerAvatar>();
+
+    public event Action<PlayerAvatar> AvatarCreated;
+    public event Action<PlayerAvatar> AvatarDestroyed;
+
+    public void Awake() {
+        CreateAvatar(session.ClientID);
+        Avatars.Clear();
     }
 
-    public event Action<PlayerAvatar> avatarCreated;
-    public event Action<PlayerAvatar> avatarDestroyed;
-    
-    private void Start()
-    {
-        _avatars = new Dictionary<int, PlayerAvatar>();
+    public PlayerAvatar CreateAvatar(string id) {
+        PlayerAvatar avatar = Instantiate(prefab).GetComponent<PlayerAvatar>();
+        Avatars.Add(id, avatar);
+
+        return avatar;
     }
 
-    public void Initialize(Session session) {
-        PlayerAvatar local = Instantiate(prefab).GetComponent<PlayerAvatar>();
+    public PlayerAvatar GetAvatar(string id) {
+        bool exists = Avatars.TryGetValue(id, out PlayerAvatar avatar);
+        if (!exists) return null;
 
-        _avatars.Clear();
-        _avatars.Add(-1, local);
+        return avatar;
+    }
+
+    public Dictionary<string, PlayerAvatar>.ValueCollection GetAvatars() {
+        return Avatars.Values;
     }
 }
