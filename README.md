@@ -1,4 +1,4 @@
-# BricksVR
+# BricksVR returned
 
 This is a fork of the open source mirror of BricksVR the Unity game. The purpose of this fork is not only to restore the game to a playable state but even add some new features.
 
