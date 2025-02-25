@@ -9,7 +9,7 @@ You can find the original game for the Oculus Quest [here](https://www.oculus.co
 ## Running the project
 
 - Clone the repository
-  - `git clone https://github.com/ATXLtheAxolotl/BricksVR-Rebuilt.git`
+  - `git clone https://github.com/FigureVR/BricksVR-Rebuilt.git`
 - Add project to Unity
 ### Android Only
 - To build the game as an apk you will need to:
